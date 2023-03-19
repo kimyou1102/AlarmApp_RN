@@ -21,6 +21,7 @@ import {
 import Alarm from '../components/Alarm';
 import Icon from 'react-native-vector-icons/Fontisto';
 import Modal from 'react-native-modal';
+import { debounce } from 'lodash';
 
 const MainScreen = () => {
   const [data, setData] = useState({});
@@ -29,9 +30,7 @@ const MainScreen = () => {
   const [selectedHour, setSelectedHour] = useState(0);
   const [selectedMinute, setSelectedMinute] = useState(0);
 
-  const timeZoneRef = useRef();
-  const hoursRef = useRef();
-  const minutesRef = useRef();
+  const refs = useRef([]);
   
   const BTN_Height = 40;
 
@@ -101,32 +100,29 @@ const MainScreen = () => {
     '',
   ];
 
-  const onScroll = (event, ref, kind) => {
-    const currentY = event.nativeEvent.contentOffset.y;
-    const num = Math.round(currentY/BTN_Height);
-    console.log(num);
-    if(num !== currentY/BTN_Height) {
-      ref.current?.scrollTo({x: 0, y: num*BTN_Height, animated: true})
-    }
-
-    console.log(kind);
-    if(kind === 'zone') {
-      setSelectedTimeZone(num === 0 ? '오전' : '오후')
-    } else if(kind === 'hour') {
-      setSelectedHour(num+1);
-    } else if(kind === 'minute') {
-      setSelectedMinute(num);
-    }
-  }
-
   const plusOnPress = async () => {
     setModalVisible(modalVisible => !modalVisible);
   };
 
+  const onScrollStop = debounce((offsetY, index) => {
+    const num = Math.round(offsetY/BTN_Height);
+    if(num !== offsetY/BTN_Height) {
+      refs.current[index]?.scrollTo({x: 0, y: num*BTN_Height, animated: true})
+    }
+
+    if(index === 0) {
+      setSelectedTimeZone(num === 0 ? '오전' : '오후')
+    } else if(index === 1) {
+      setSelectedHour(num+1);
+    } else if(index === 2) {
+      setSelectedMinute(num);
+    }
+  }, 200, {leading: false, trailing: true})
+
   const Button = ({label, index={index}}) => {
     return (
       <TouchableWithoutFeedback key={index}>
-        <View style={styles.button} onPress={() => {console.log('제발여;')}}>
+        <View style={styles.button}>
           <Text style={styles.buttonLabel}>{label}</Text>
         </View>
       </TouchableWithoutFeedback>
@@ -221,8 +217,8 @@ const MainScreen = () => {
             <TimeSetContainer>
               <TimeScrollWrap>
                 <TimeScrollView
-                  ref={timeZoneRef}
-                  onScrollEndDrag={(e) => {onScroll(e, timeZoneRef, 'zone')}}
+                  ref={(el)=>refs.current[0]=el}
+                  onMomentumScrollEnd={(event) => {onScrollStop(event.nativeEvent.contentOffset.y, 0)}}
                   showsVerticalScrollIndicator={false}
                 >
                   {['', '오전', '오후', ''].map((item, index) => (
@@ -232,8 +228,8 @@ const MainScreen = () => {
               </TimeScrollWrap>
               <TimeScrollWrap>
                 <TimeScrollView
-                  ref={hoursRef}
-                  onMomentumScrollEnd={(e) => {onScroll(e, hoursRef, 'hour')}}
+                  ref={(el)=>refs.current[1]=el}
+                  onMomentumScrollEnd={(event) => {onScrollStop(event.nativeEvent.contentOffset.y, 1)}}
                   showsVerticalScrollIndicator={false}
                 >
                   {hours.map((hour, index) => (
@@ -244,8 +240,8 @@ const MainScreen = () => {
 
               <TimeScrollWrap>
                 <TimeScrollView
-                  ref={minutesRef}
-                  onMomentumScrollEnd={(e) => {onScroll(e, minutesRef, 'minute')}}
+                  ref={(el)=>refs.current[2]=el}
+                  onMomentumScrollEnd={(event) => {onScrollStop(event.nativeEvent.contentOffset.y, 2)}}
                   showsVerticalScrollIndicator={false}
                 >
                   {minutes.map((minute, index) => (
@@ -269,7 +265,6 @@ const styles = StyleSheet.create({
     margin: 0,
   },
   view: {
-    // backgroundColor: '#2f2f2f',
     backgroundColor: 'white',
     borderTopLeftRadius: 10,
     borderTopRightRadius: 10,
