@@ -56,7 +56,34 @@ export const ModalTextWrap = styled.View`
 export const ModalText = styled.Text`
     font-size: 20px;
     font-weight: ${(props) => props.weight || 'normal'};
-    color: rgb(18, 188, 154); 
+    color: #181632e0; 
+`
+export const TimeSetContainer = styled.View`
+    height: 150px;
+    width: 100%;
+    border-width: 1px;
+    padding-top: 15px;
+    padding-bottom: 15px;
+    flex-direction: row;
+    justify-content: center;
+`
+
+export const TimeScrollWrap = styled.View`
+    // background: ${(props) => props.color || 'pink'};
+    // height: 150px;
+    width: ${(props) => props.width || '55px'};
+    margin-horizontal: 10px;
+`
+
+export const TimeScrollView = styled.ScrollView`
+
+`
+
+export const TimeText = styled.Text`
+    font-size: 23px;
+    text-align: center;
+    border-width: 1px;
+    padding: 15px;
 `
 
 export const OverlayWrap = styled.View`
@@ -79,16 +106,51 @@ export const BorderView = styled.View`
     width: 55px;
     flexDirection: row;
     // border-color: #959595cc;
-    border-color: rgb(18, 188, 154);
+    border-color: #a7a5a5;
 `
 
 export const AlarmAddInfoText = styled.Text`
     font-size: 16px;
+    padding-top: 15px;
+    padding-bottom: 15px;
 `
 
 export const SetWrap = styled.View`
-    height: ${(props) => props.height || '200px'};
+    height: ${(props) => props.height || '130px'};
+    border-width: 1px;
+    padding-horizontal: 15px; 
 `
+
+export const SmallSetbWrap = styled.View`
+    height: 60px;
+    border-width: 1px;
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+    padding-horizontal: 15px; 
+`
+
+export const WeekView = styled.View`
+    flex-direction: row;
+    justify-content: space-between;
+    padding-horizontal: 20px;
+    padding-top: 15px;
+`
+
+export const WeekBtn = styled.View`
+    width: 40px;
+    height: 40px;
+    background-color: ${(props) => props.color || '#e4e4e4'};
+    border-radius: 50px; 
+    justify-content: center;
+`
+
+export const WeekBtnText = styled.Text`
+    text-align: center;
+    color: ${(props) => props.color || '#757575'};
+    font-size: 16px;
+`
+
 
 //MainScreen.js 끝
 
@@ -133,33 +195,85 @@ export const AlarmSwitch = styled.Switch`
 
 
 //AlarmAddBottomSheet.js 시작
+//AlarmAddBottomSheet.js 끝
 
-export const TimeSetContainer = styled.View`
-    height: 150px;
-    width: 100%;
-    border-width: 1px;
-    padding-top: 15px;
-    padding-bottom: 15px;
-    flex-direction: row;
+// MissionSetScreen.js 시작
+export const CloseBtn = styled.View`
+    width: 30px;
+    height: 30px;
+    // background-color: red;
     justify-content: center;
 `
 
-export const TimeScrollWrap = styled.View`
-    // background: ${(props) => props.color || 'pink'};
-    // height: 150px;
-    width: ${(props) => props.width || '55px'};
-    margin-horizontal: 10px;
-`
+export const MissionSetText = styled.Text`
+    font-size: 25px;
+    font-weight: bold;
+    color: black;
+    margin-left: 15px;
+    margin-top: 20px;
+`;
 
-export const TimeScrollView = styled.ScrollView`
+export const MissionSetSubText = styled.Text`
+    font-size: 18px;
+    color: black;
+`;
 
-`
+export const InputsWrap = styled.View`
+    margin-top: 50px;
+    padding-horizontal: 20px;
+`;
 
-export const TimeText = styled.Text`
-    font-size: 23px;
-    text-align: center;
+export const Input = styled.TextInput`
+    height: 50px;
+    width: 100%;
     border-width: 1px;
-    padding: 15px;
+    margin-top: 10px;
+    margin-bottom: 50px;
+    padding-left: 10px;
+    font-size: 16px;
+`
+export const CountContainer = styled.View`
+    flex-direction: row;
+    justify-content: center;
+    align-items: center;
+    margin-top: 10px;
+    height: 200px;
+    background: #e6ebf7;
+    border-radius: 10px;
+`
+export const CountBtn = styled.TouchableOpacity`
+    width: 60px;
+    height: 60px;
+    background-color: #181632e0;
+    border-radius: 5px;
+    justify-content: center;
+    // border-width: 1px;
 `
 
-//AlarmAddBottomSheet.js 끝
+export const CountWrap = styled.View`
+    width: 100px;
+    height: 60px;
+    // border-width: 1px;
+    justify-content: center;
+`
+
+export const CountText = styled.Text`
+    font-size: 20px;
+    text-align: center;
+`
+export const SubmitBtn = styled.TouchableOpacity`
+    width: 80px;
+    height: 50px;
+    background-color: #181632e0;
+    border-radius: 30px;
+    justify-content: center;
+    align-items: center;
+    margin-left: auto;
+    margin-top: 50px; 
+`
+export const SubmitBtnText = styled.Text`
+    color: white;
+    font-size: 18px;
+`
+
+// MissionSetScreen.js 끝
