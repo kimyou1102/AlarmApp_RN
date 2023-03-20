@@ -119,9 +119,9 @@ const MainScreen = () => {
     }
   }, 200, {leading: false, trailing: true})
 
-  const Button = ({label, index={index}}) => {
+  const Button = ({label}) => {
     return (
-      <TouchableWithoutFeedback key={index}>
+      <TouchableWithoutFeedback>
         <View style={styles.button}>
           <Text style={styles.buttonLabel}>{label}</Text>
         </View>
@@ -222,7 +222,7 @@ const MainScreen = () => {
                   showsVerticalScrollIndicator={false}
                 >
                   {['', '오전', '오후', ''].map((item, index) => (
-                    <Button index={index} label={item} />
+                    <Button key={index} label={item} />
                   ))}
                 </TimeScrollView>
               </TimeScrollWrap>
@@ -233,7 +233,7 @@ const MainScreen = () => {
                   showsVerticalScrollIndicator={false}
                 >
                   {hours.map((hour, index) => (
-                    <Button index={index} label={hour}/>
+                    <Button key={index} label={hour}/>
                   ))}
                 </TimeScrollView>
               </TimeScrollWrap>
@@ -245,7 +245,7 @@ const MainScreen = () => {
                   showsVerticalScrollIndicator={false}
                 >
                   {minutes.map((minute, index) => (
-                    <Button index={index} label={minute} />
+                    <Button key={index} label={minute} />
                   ))}
                 </TimeScrollView>
               </TimeScrollWrap>
@@ -255,7 +255,7 @@ const MainScreen = () => {
           </View>
         </Modal>
       </Container>
-    </>
+    </>  
   );
 };
 
