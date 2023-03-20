@@ -8,7 +8,7 @@ import { MissionSetText, InputsWrap, MissionSetSubText, Input, CountContainer, C
 import Modal from 'react-native-modal';
 import Icon from 'react-native-vector-icons/AntDesign';
 
-const MissionSetScreen = ({isMissionVisible, setIsMissionVisible, value, setValue, count, setCount}) => {
+const MissionSetScreen = ({isMissionVisible, setIsMissionVisible, value, setValue, count, setCount, setSentenceInfo}) => {
     //확인용으로 따로한거지 나중에 합치자
     const closeOnPress = () => {
         console.log('헤이');
@@ -19,8 +19,9 @@ const MissionSetScreen = ({isMissionVisible, setIsMissionVisible, value, setValu
 
     const SubmitOnPress = () => {
         console.log(count, value);
-        // setValue('');
-        // setCount(0);
+        setValue('');
+        setCount(0);
+        setSentenceInfo([count, value])
         setIsMissionVisible(isMissionVisible => !isMissionVisible);
     }
 

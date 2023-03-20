@@ -39,6 +39,7 @@ const MainScreen = () => {
   const [isMissionVisible, setIsMissionVisible] = useState(false);
   const [count, setCount] = useState(0);
   const [value, setValue] = useState('');
+  const [sentenceInfo, setSentenceInfo] = useState([]);
 
   const refs = useRef([]);
   const BTN_Height = 40;
@@ -148,15 +149,20 @@ const MainScreen = () => {
 
     const minute = selectedMinute < 10 ? `0${selectedMinute}` : selectedMinute;
 
-    const one = {'count': count, 'on_off': true, repeat: false, 'sentence': value, 'sound': "alarm_bell", 'hour': selectedHour, 'minute': minute, "time_zone": selectedTimeZone, 'volume': 5};
+    const one = {'count': sentenceInfo[0], 'on_off': true, repeat: false, 'sentence': sentenceInfo[1], 'sound': "alarm_bell", 'hour': selectedHour, 'minute': minute, "time_zone": selectedTimeZone, 'volume': 5};
     const newList = [one];
     console.log(newList);
     setData(newList);
     try {
-        await AsyncStorage.setItem("textData", JSON.stringify(newList));
+        const storageData = JSON.parse(await AsyncStorage.getItem('textData'));
+        const newData = [...storageData, one];
+        await AsyncStorage.setItem("textData", JSON.stringify(newData));
+        setData(newData);
     } catch (error) {
         console.log('추가부분 에러', error);
     }
+
+    setSentenceInfo([]);
   }
 
   const Button = ({label}) => {
@@ -330,7 +336,7 @@ const MainScreen = () => {
                 <AlarmAddInfoText>미션 없음</AlarmAddInfoText>
               </SmallSetbWrap>
             </TouchableWithoutFeedback>
-            <MissionSetScreen isMissionVisible={isMissionVisible} value={value} setValue={setValue} setIsMissionVisible={setIsMissionVisible} count={count} setCount={setCount}/>
+            <MissionSetScreen isMissionVisible={isMissionVisible} value={value} setValue={setValue} setIsMissionVisible={setIsMissionVisible} count={count} setCount={setCount} setSentenceInfo={setSentenceInfo}/>
 
             <Text>{selectedTimeZone} {selectedHour} {selectedMinute}</Text>
             <View>{selectDay.map((e, i) => (
