@@ -30,7 +30,7 @@ import MissionSetScreen from './MissionSetScreen';
 
 const MainScreen = () => {
   const [data, setData] = useState({});
-  const [isModalVisible, setModalVisible] = useState(false);
+  const [isModalVisible, setModalVisible] = useState(true);
   const [selectedTimeZone, setSelectedTimeZone] = useState('');
   const [selectedHour, setSelectedHour] = useState(0);
   const [selectedMinute, setSelectedMinute] = useState(0);
@@ -40,6 +40,7 @@ const MainScreen = () => {
   const [count, setCount] = useState(0);
   const [value, setValue] = useState('');
   const [sentenceInfo, setSentenceInfo] = useState([]);
+  const [sliderValue, setSliderValue] = useState(0);
 
   const refs = useRef([]);
   const BTN_Height = 40;
@@ -142,15 +143,20 @@ const MainScreen = () => {
     console.log('제출');
     setModalVisible(isModalVisible => !isModalVisible);
     console.log(selectedTimeZone, selectedHour, selectedMinute);
-    const arr = selectDay.map((e, i) => (e));
+    const arr = [];
+    selectDay.map((e, i) => (
+      e ? arr.push(i) : null
+    ));
     console.log(arr);
-    console.log(count, value);
+    const weekData = arr.map((e) => week[e]);
+    console.log(weekData);
+    console.log(sentenceInfo[0], sentenceInfo[1]);
     console.log('제출끝');
 
     const minute = selectedMinute < 10 ? `0${selectedMinute}` : selectedMinute;
 
-    const one = {'count': sentenceInfo[0], 'on_off': true, repeat: false, 'sentence': sentenceInfo[1], 'sound': "alarm_bell", 'hour': selectedHour, 'minute': minute, "time_zone": selectedTimeZone, 'volume': 5};
-    const newList = [one];
+    const one = {'count': sentenceInfo[0], 'on_off': true, repeat: weekData, 'sentence': sentenceInfo[1], 'sound': "alarm_bell", 'hour': selectedHour, 'minute': minute, "time_zone": selectedTimeZone, 'volume': 5, 'decibel': sliderValue};
+    console.log(one);
     try {
       const storageData = JSON.parse(await AsyncStorage.getItem('textData'));
       if (storageData) {
@@ -256,11 +262,7 @@ const MainScreen = () => {
                 <Alarm
                   key={index}
                   index={index}
-                  time_zone={e.time_zone}
-                  hour={e.hour}
-                  minute={e.minute}
-                  on_off={e.on_off}
-                  data={data}
+                  item={e}
                   setData={setData}
                 />
               ))
@@ -346,7 +348,9 @@ const MainScreen = () => {
                 <AlarmAddInfoText>미션 없음</AlarmAddInfoText>
               </SmallSetbWrap>
             </TouchableWithoutFeedback>
-            <MissionSetScreen isMissionVisible={isMissionVisible} value={value} setValue={setValue} setIsMissionVisible={setIsMissionVisible} count={count} setCount={setCount} setSentenceInfo={setSentenceInfo}/>
+            <MissionSetScreen isMissionVisible={isMissionVisible} value={value} setValue={setValue} setIsMissionVisible={setIsMissionVisible} count={count} setCount={setCount} setSentenceInfo={setSentenceInfo}
+            sliderValue={sliderValue} setSliderValue={setSliderValue}
+            />
 
             <Text>{selectedTimeZone} {selectedHour} {selectedMinute}</Text>
             <View>{selectDay.map((e, i) => (
@@ -365,7 +369,8 @@ const styles = StyleSheet.create({
     margin: 0,
   },
   view: {
-    backgroundColor: 'white',
+    backgroundColor: '#e6ebf7',
+    // background: #e6ebf7;
     // borderTopLeftRadius: 10,
     // borderTopRightRadius: 10,
     width: '100%',
