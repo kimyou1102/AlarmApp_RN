@@ -30,7 +30,7 @@ import MissionSetScreen from './MissionSetScreen';
 
 const MainScreen = () => {
   const [data, setData] = useState({});
-  const [isModalVisible, setModalVisible] = useState(true);
+  const [isModalVisible, setModalVisible] = useState(false);
   const [selectedTimeZone, setSelectedTimeZone] = useState('');
   const [selectedHour, setSelectedHour] = useState(0);
   const [selectedMinute, setSelectedMinute] = useState(0);
@@ -115,7 +115,7 @@ const MainScreen = () => {
     setSelectedDay(copy);
   }
 
-  const plusOnPress = async () => {
+  const plusOnPress = () => {
     setModalVisible(modalVisible => !modalVisible);
   };
 
@@ -138,7 +138,7 @@ const MainScreen = () => {
     }
   }, 200, {leading: false, trailing: true})
 
-  const SubmitOnPress = async() => {
+  const SubmitOnPress = async () => {
     console.log('제출');
     setModalVisible(isModalVisible => !isModalVisible);
     console.log(selectedTimeZone, selectedHour, selectedMinute);
@@ -151,18 +151,28 @@ const MainScreen = () => {
 
     const one = {'count': sentenceInfo[0], 'on_off': true, repeat: false, 'sentence': sentenceInfo[1], 'sound': "alarm_bell", 'hour': selectedHour, 'minute': minute, "time_zone": selectedTimeZone, 'volume': 5};
     const newList = [one];
-    console.log(newList);
-    setData(newList);
     try {
-        const storageData = JSON.parse(await AsyncStorage.getItem('textData'));
+      const storageData = JSON.parse(await AsyncStorage.getItem('textData'));
+      if (storageData) {
         const newData = [...storageData, one];
         await AsyncStorage.setItem("textData", JSON.stringify(newData));
-        setData(newData);
+        setData(newData);  
+      } else {
+        console.log('GET data from storage');
+        const newData = [one];
+        await AsyncStorage.setItem("textData", JSON.stringify(newData));
+        setData(newData);  
+      }
     } catch (error) {
         console.log('추가부분 에러', error);
     }
 
+    //취소할때도 초기화 해주기 
     setSentenceInfo([]);
+    setSelectedDay([false, false, false, false, false, false, false]);
+    setSelectedTimeZone('');
+    setSelectedHour(0);
+    setSelectedMinute(0);
   }
 
   const Button = ({label}) => {
@@ -257,7 +267,7 @@ const MainScreen = () => {
             : null}
         </AlarmScroll>
         <AddBtnWrap>
-          <AddBtn onPress={plusOnPress}>
+          <AddBtn onPress={plusOnPress} activeOpacity={0.5}>
             <Icon
               name="plus-a"
               size={20}
