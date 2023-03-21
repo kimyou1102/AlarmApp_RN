@@ -4,6 +4,7 @@ import {
   View,
   Text,
   TouchableWithoutFeedback,
+  FlatList
 } from 'react-native';
 import {
   Container,
@@ -19,9 +20,9 @@ import {
   BorderView,
   SetWrap, SmallSetbWrap,
   AlarmAddInfoText,
-  WeekView, WeekBtn, WeekBtnText
+  WeekView, WeekBtn, WeekBtnText,
+  AlarmWrap, TimeWrap, Time, TimeZone, AlarmSwitch
 } from '../styles/styledComponents';
-import Alarm from '../components/Alarm';
 import Icon from 'react-native-vector-icons/Fontisto';
 import Modal from 'react-native-modal';
 import { debounce } from 'lodash';
@@ -236,7 +237,6 @@ const MainScreen = () => {
       // },
     ];
     // setData(initialData);
-
     const getData = async () => {
       try {
         const storageData = JSON.parse(await AsyncStorage.getItem('textData'));
@@ -253,21 +253,47 @@ const MainScreen = () => {
     getData();
   }, []);
 
+  const RenderAlarm = ({item, index}) => {
+    const onChange = async (event) => {
+      const checked = event.nativeEvent.value;
+      const id = event._dispatchInstances._debugOwner.memoizedProps.id;
+      const copy = data.map((e, index) => (
+          index === id ? {...e, 'on_off': checked} : e
+      ));
+
+      try {
+          const newData = copy;
+          await AsyncStorage.setItem("textData", JSON.stringify(newData));
+          setData(newData);
+      } catch (error) {
+          console.log('알람 스위치 추가부분 에러', error);
+      }
+      setData(copy);
+    }
+  // console.log(data);
+  
+  return (
+      <AlarmWrap>
+          <TimeWrap>
+              <TimeZone color={item.on_off ? 'white' : null}>{item.time_zone}</TimeZone>
+              <Time color={item.on_off ? 'white' : null}>{item.hour}:{item.minute}</Time>
+          </TimeWrap>
+          <AlarmSwitch id={index} value={item.on_off} onChange={onChange} />
+      </AlarmWrap>
+    );
+  }
+
   return (
     <>
       <Container>
-        <AlarmScroll contentContainerStyle={{paddingBottom: 20}}>
-          {data.length
-            ? data.map((e, index) => (
-                <Alarm
-                  key={index}
-                  index={index}
-                  item={e}
-                  setData={setData}
-                />
-              ))
-            : null}
-        </AlarmScroll>
+        <View style={{height:"80%",}}>
+          {data.length ?
+            <FlatList
+              data={data}
+              renderItem={RenderAlarm}
+              keyExtractor={(alam) => alam.id}
+            /> : null}
+        </View>
         <AddBtnWrap>
           <AddBtn onPress={plusOnPress} activeOpacity={0.5}>
             <Icon
