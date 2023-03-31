@@ -1,4 +1,4 @@
-import React, {useState, useEffect, useRef} from 'react';
+import React, {useState, useEffect} from 'react';
 import {
   StyleSheet,
   View,
@@ -8,16 +8,11 @@ import {
 } from 'react-native';
 import {
   Container,
-  AlarmScroll,
   AddBtnWrap,
   AddBtn,
   ModalTextWrap,
   ModalText,
   TimeSetContainer,
-  TimeScrollWrap,
-  TimeScrollView,
-  OverlayWrap,
-  BorderView,
   SetWrap, SmallSetbWrap,
   AlarmAddInfoText,
   WeekView, WeekBtn, WeekBtnText,
@@ -25,12 +20,12 @@ import {
 } from '../styles/styledComponents';
 import Icon from 'react-native-vector-icons/Fontisto';
 import Modal from 'react-native-modal';
-import { debounce } from 'lodash';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import MissionSetScreen from './MissionSetScreen';
+import DatePicker from 'react-native-date-picker'
 
 const MainScreen = () => {
-  const [data, setData] = useState({});
+  const [data, setData] = useState([]);
   const [isModalVisible, setModalVisible] = useState(true);
   const [selectedTimeZone, setSelectedTimeZone] = useState('');
   const [selectedHour, setSelectedHour] = useState(0);
@@ -38,79 +33,18 @@ const MainScreen = () => {
   const [selectDay, setSelectedDay] = useState([false, false, false, false, false, false, false]);
   const [missionCheck, setMissionCheck] = useState(false);
   const [isMissionVisible, setIsMissionVisible] = useState(false);
-  const [count, setCount] = useState(0);
+  const [count, setCount] = useState(1);
   const [value, setValue] = useState('');
   const [sentenceInfo, setSentenceInfo] = useState([]);
-  const [sliderValue, setSliderValue] = useState(0);
+  const [sliderValue, setSliderValue] = useState(50);
+  const [isMission, setMission] = useState('없음');
+  const [date, setDate] = useState(new Date())
+  console.log(date);
 
-  const refs = useRef([]);
-  const BTN_Height = 40;
+  useEffect(() => {
+    date.getHours() > 12 ? setSelectedTimeZone('오후') : setSelectedTimeZone('오전');
+  }, [date]);
 
-  const hours = ['', 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, ''];
-  const minutes = [
-    '',
-    '00',
-    '01',
-    '02',
-    '03',
-    '04',
-    '05',
-    '06',
-    '07',
-    '08',
-    '09',
-    '10',
-    '11',
-    '12',
-    '13',
-    '14',
-    '15',
-    '16',
-    '17',
-    '18',
-    '19',
-    '20',
-    '21',
-    '22',
-    '23',
-    '24',
-    '25',
-    '26',
-    '27',
-    '28',
-    '29',
-    '30',
-    '31',
-    '32',
-    '33',
-    '34',
-    '35',
-    '36',
-    '37',
-    '38',
-    '39',
-    '40',
-    '41',
-    '42',
-    '43',
-    '44',
-    '45',
-    '46',
-    '47',
-    '48',
-    '49',
-    '50',
-    '51',
-    '52',
-    '53',
-    '54',
-    '55',
-    '56',
-    '57',
-    '58',
-    '59',
-    '',
-  ];
   const week = ['월', '화', '수', '목', '금', '토', '일'];
   const onDayPress = (i) => {
     const copy = selectDay.map((e, index) => (index === i ? !e : e));
@@ -125,24 +59,9 @@ const MainScreen = () => {
     setIsMissionVisible(modalVisible => !modalVisible);
   }
 
-  const onScrollStop = debounce((offsetY, index) => {
-    const num = Math.round(offsetY/BTN_Height);
-    if(num !== offsetY/BTN_Height) {
-      refs.current[index]?.scrollTo({x: 0, y: num*BTN_Height, animated: true})
-    }
-
-    if(index === 0) {
-      setSelectedTimeZone(num === 0 ? '오전' : '오후')
-    } else if(index === 1) {
-      setSelectedHour(num+1);
-    } else if(index === 2) {
-      setSelectedMinute(num);
-    }
-  }, 200, {leading: false, trailing: true})
-
   const SubmitOnPress = async () => {
     console.log('제출');
-    setModalVisible(isModalVisible => !isModalVisible);
+    // setModalVisible(isModalVisible => !isModalVisible);
     console.log(selectedTimeZone, selectedHour, selectedMinute);
     const arr = [];
     selectDay.map((e, i) => (
@@ -154,10 +73,19 @@ const MainScreen = () => {
     console.log(sentenceInfo[0], sentenceInfo[1]);
     console.log('제출끝');
 
-    const minute = selectedMinute < 10 ? `0${selectedMinute}` : selectedMinute;
+    let hour = 0;
+    if(date.getHours() > 12) {
+      hour = date.getHours() - 12;
+    } else {
+      hour = date.getHours();
+    }
+    hour === 0 ? hour = 12 : null;
 
-    const one = {'count': sentenceInfo[0], 'on_off': true, repeat: weekData, 'sentence': sentenceInfo[1], 'sound': "alarm_bell", 'hour': selectedHour, 'minute': minute, "time_zone": selectedTimeZone, 'volume': 5, 'decibel': sliderValue};
+    const minute = date.getMinutes() < 10 ? `0${date.getMinutes()}` :  date.getMinutes();
+
+    const one = {'count': sentenceInfo[0], 'on_off': true, repeat: weekData, 'sentence': sentenceInfo[1], 'sound': "alarm_bell", 'hour': hour, 'minute': minute, "full_date" : date, "time_zone": selectedTimeZone, 'volume': 5, 'decibel': sliderValue};
     console.log(one);
+    console.log('=============================================================');
     try {
       const storageData = JSON.parse(await AsyncStorage.getItem('textData'));
       if (storageData) {
@@ -175,32 +103,23 @@ const MainScreen = () => {
     }
 
     //취소할때도 초기화 해주기 
+    // setSentenceInfo([]);
+    // setSelectedDay([false, false, false, false, false, false, false]);
+    // setSelectedTimeZone('');
+    // setSelectedHour(0);
+    // setSelectedMinute(0);
+    closeOnPress();
+  }
+
+  const closeOnPress = () => {
+    setModalVisible(isModalVisible => !isModalVisible);
     setSentenceInfo([]);
     setSelectedDay([false, false, false, false, false, false, false]);
     setSelectedTimeZone('');
     setSelectedHour(0);
     setSelectedMinute(0);
+    setMission('없음');
   }
-
-  const Button = ({label}) => {
-    return (
-      <TouchableWithoutFeedback>
-        <View style={styles.button}>
-          <Text style={styles.buttonLabel}>{label}</Text>
-        </View>
-      </TouchableWithoutFeedback>
-    );
-  };
-
-  const OverlayView = () => {
-    return (
-      <OverlayWrap>
-        <BorderView/>
-        <BorderView/>
-        <BorderView/>
-      </OverlayWrap>
-    );
-  };
 
   useEffect(() => {
     const initialData = [
@@ -237,6 +156,8 @@ const MainScreen = () => {
       // },
     ];
     // setData(initialData);
+
+    //스토리지 삭제시 제대로 되기 위해 id값 생성한 시간으로 하기
     const getData = async () => {
       try {
         const storageData = JSON.parse(await AsyncStorage.getItem('textData'));
@@ -251,6 +172,7 @@ const MainScreen = () => {
     };
 
     getData();
+    console.log(data);
   }, []);
 
   const RenderAlarm = ({item, index}) => {
@@ -262,9 +184,9 @@ const MainScreen = () => {
       ));
 
       try {
-          const newData = copy;
-          await AsyncStorage.setItem("textData", JSON.stringify(newData));
-          setData(newData);
+        const newData = copy;
+        await AsyncStorage.setItem("textData", JSON.stringify(newData));
+        setData(newData);
       } catch (error) {
           console.log('알람 스위치 추가부분 에러', error);
       }
@@ -291,8 +213,8 @@ const MainScreen = () => {
             <FlatList
               data={data}
               renderItem={RenderAlarm}
-              keyExtractor={(alam) => alam.id}
-            /> : null}
+              keyExtractor={(item, index) => index.toString()}
+            /> : <Text>알람이 없어요</Text>}
         </View>
         <AddBtnWrap>
           <AddBtn onPress={plusOnPress} activeOpacity={0.5}>
@@ -312,45 +234,11 @@ const MainScreen = () => {
         >
           <View style={styles.view}>
             <ModalTextWrap>
-              <ModalText onPress={() => setModalVisible(false)}>취소</ModalText>
+              <ModalText onPress={closeOnPress}>취소</ModalText>
               <ModalText weight="bold" onPress={SubmitOnPress}>저장</ModalText>
             </ModalTextWrap>
             <TimeSetContainer>
-              <TimeScrollWrap>
-                <TimeScrollView
-                  ref={(el)=>refs.current[0]=el}
-                  onMomentumScrollEnd={(event) => {onScrollStop(event.nativeEvent.contentOffset.y, 0)}}
-                  showsVerticalScrollIndicator={false}
-                >
-                  {['', '오전', '오후', ''].map((item, index) => (
-                    <Button key={index} label={item} />
-                  ))}
-                </TimeScrollView>
-              </TimeScrollWrap>
-              <TimeScrollWrap>
-                <TimeScrollView
-                  ref={(el)=>refs.current[1]=el}
-                  onMomentumScrollEnd={(event) => {onScrollStop(event.nativeEvent.contentOffset.y, 1)}}
-                  showsVerticalScrollIndicator={false}
-                >
-                  {hours.map((hour, index) => (
-                    <Button key={index} label={hour}/>
-                  ))}
-                </TimeScrollView>
-              </TimeScrollWrap>
-
-              <TimeScrollWrap>
-                <TimeScrollView
-                  ref={(el)=>refs.current[2]=el}
-                  onMomentumScrollEnd={(event) => {onScrollStop(event.nativeEvent.contentOffset.y, 2)}}
-                  showsVerticalScrollIndicator={false}
-                >
-                  {minutes.map((minute, index) => (
-                    <Button key={index} label={minute} />
-                  ))}
-                </TimeScrollView>
-              </TimeScrollWrap>
-              <OverlayView />
+              <DatePicker mode="time" date={date} onDateChange={setDate} style={{height: 100, width: 280}}/>
             </TimeSetContainer>
 
             <SetWrap>
@@ -370,12 +258,12 @@ const MainScreen = () => {
             </SetWrap>
             <TouchableWithoutFeedback onPress={missionOnPress}>
               <SmallSetbWrap>
-                <AlarmAddInfoText>미션</AlarmAddInfoText>
-                <AlarmAddInfoText>미션 없음</AlarmAddInfoText>
+                <AlarmAddInfoText>문장 읽기</AlarmAddInfoText>
+                <AlarmAddInfoText>{isMission}</AlarmAddInfoText>
               </SmallSetbWrap>
             </TouchableWithoutFeedback>
             <MissionSetScreen isMissionVisible={isMissionVisible} value={value} setValue={setValue} setIsMissionVisible={setIsMissionVisible} count={count} setCount={setCount} setSentenceInfo={setSentenceInfo}
-            sliderValue={sliderValue} setSliderValue={setSliderValue}
+            sliderValue={sliderValue} setSliderValue={setSliderValue} setMission={setMission}
             />
 
             <Text>{selectedTimeZone} {selectedHour} {selectedMinute}</Text>
