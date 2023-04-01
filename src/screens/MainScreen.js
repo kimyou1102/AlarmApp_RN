@@ -4,7 +4,9 @@ import {
   View,
   Text,
   TouchableWithoutFeedback,
-  FlatList
+  FlatList,
+  TouchableOpacity,
+  Alert
 } from 'react-native';
 import {
   Container,
@@ -23,10 +25,12 @@ import Modal from 'react-native-modal';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import MissionSetScreen from './MissionSetScreen';
 import DatePicker from 'react-native-date-picker'
+import Swipeable from 'react-native-gesture-handler/Swipeable';
+import { GestureHandlerRootView } from "react-native-gesture-handler";
 
 const MainScreen = () => {
   const [data, setData] = useState([]);
-  const [isModalVisible, setModalVisible] = useState(true);
+  const [isModalVisible, setModalVisible] = useState(false);
   const [selectedTimeZone, setSelectedTimeZone] = useState('');
   const [selectedHour, setSelectedHour] = useState(0);
   const [selectedMinute, setSelectedMinute] = useState(0);
@@ -83,7 +87,7 @@ const MainScreen = () => {
 
     const minute = date.getMinutes() < 10 ? `0${date.getMinutes()}` :  date.getMinutes();
 
-    const one = {'count': sentenceInfo[0], 'on_off': true, repeat: weekData, 'sentence': sentenceInfo[1], 'sound': "alarm_bell", 'hour': hour, 'minute': minute, "full_date" : date, "time_zone": selectedTimeZone, 'volume': 5, 'decibel': sliderValue};
+    const one = {'id': Date.now(),'count': sentenceInfo[0], 'on_off': true, repeat: weekData, 'sentence': sentenceInfo[1], 'sound': "alarm_bell", 'hour': hour, 'minute': minute, "full_date" : date, "time_zone": selectedTimeZone, 'volume': 5, 'decibel': sliderValue};
     console.log(one);
     console.log('=============================================================');
     try {
@@ -122,41 +126,41 @@ const MainScreen = () => {
   }
 
   useEffect(() => {
-    const initialData = [
-      {
-        count: 3,
-        on_off: true,
-        repeat: false,
-        sentence: '안녕하세요',
-        sound: 'alarm_bell',
-        hour: 8,
-        minute: 30,
-        time_zone: '오전',
-        volume: 5,
-      },
-      // {
-      //   count: 3,
-      //   on_off: true,
-      //   repeat: false,
-      //   sentence: '안녕하세요',
-      //   sound: 'alarm_bell',
-      //   time: '9:24',
-      //   time_zone: '오전',
-      //   volume: 10,
-      // },
-      // {
-      //   count: 3,
-      //   on_off: false,
-      //   repeat: false,
-      //   sentence: '안녕하세요',
-      //   sound: 'alarm_bell',
-      //   time: '10:26',
-      //   time_zone: '오전',
-      //   volume: 5,
-      // },
-    ];
-    // setData(initialData);
-
+    // const initialData = [
+    //   {
+    //     count: 3,
+    //     on_off: true,
+    //     repeat: false,
+    //     sentence: '안녕하세요',
+    //     sound: 'alarm_bell',
+    //     hour: 8,
+    //     minute: 30,
+    //     time_zone: '오전',
+    //     volume: 5,
+    //   },
+    //   // {
+    //   //   count: 3,
+    //   //   on_off: true,
+    //   //   repeat: false,
+    //   //   sentence: '안녕하세요',
+    //   //   sound: 'alarm_bell',
+    //   //   time: '9:24',
+    //   //   time_zone: '오전',
+    //   //   volume: 10,
+    //   // },
+    //   // {
+    //   //   count: 3,
+    //   //   on_off: false,
+    //   //   repeat: false,
+    //   //   sentence: '안녕하세요',
+    //   //   sound: 'alarm_bell',
+    //   //   time: '10:26',
+    //   //   time_zone: '오전',
+    //   //   volume: 5,
+    //   // },
+    // ];
+    // // setData(initialData);
+    
     //스토리지 삭제시 제대로 되기 위해 id값 생성한 시간으로 하기
     const getData = async () => {
       try {
@@ -174,6 +178,44 @@ const MainScreen = () => {
     getData();
     console.log(data);
   }, []);
+
+  const deleteOnPress = async (id) => {
+    try {
+      const storageData = JSON.parse(await AsyncStorage.getItem('textData'));
+      const index = storageData.findIndex(e => e.id === id);
+      console.log(index);
+      storageData.splice(index, 1);
+      await AsyncStorage.setItem("textData", JSON.stringify(storageData));
+      setData(storageData);
+    } catch (error) {
+      console.log('error : ', error);
+    }
+  }
+
+  const rightSwipeActions = (id) => {
+    return (
+      <TouchableOpacity
+        onPress={() => deleteOnPress(id)}
+        activeOpacity={0.8}
+        style={{
+          width: 100,
+          backgroundColor: 'red',
+          justifyContent: 'center',
+          alignItems: 'center',
+        }}
+      >
+        <Text
+          style={{
+            color: '#1b1a17',
+            fontWeight: '600',
+            fontSize: 18,
+          }}
+        >
+          삭제
+        </Text>
+      </TouchableOpacity>
+    );
+  };
 
   const RenderAlarm = ({item, index}) => {
     const onChange = async (event) => {
@@ -195,13 +237,20 @@ const MainScreen = () => {
   // console.log(data);
   
   return (
-      <AlarmWrap>
-          <TimeWrap>
-              <TimeZone color={item.on_off ? 'white' : null}>{item.time_zone}</TimeZone>
-              <Time color={item.on_off ? 'white' : null}>{item.hour}:{item.minute}</Time>
-          </TimeWrap>
-          <AlarmSwitch id={index} value={item.on_off} onChange={onChange} />
-      </AlarmWrap>
+    <GestureHandlerRootView>
+      <Swipeable
+        renderRightActions={() => rightSwipeActions(item.id)}
+      >
+        <AlarmWrap>
+            <TimeWrap>
+                <TimeZone color={item.on_off ? 'white' : null}>{item.time_zone}</TimeZone>
+                <Time color={item.on_off ? 'white' : null}>{item.hour}:{item.minute}</Time>
+            </TimeWrap>
+            <AlarmSwitch id={index} value={item.on_off} onChange={onChange} />
+        </AlarmWrap>
+      </Swipeable>
+    </GestureHandlerRootView>
+    
     );
   }
 
