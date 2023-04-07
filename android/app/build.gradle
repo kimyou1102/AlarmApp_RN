@@ -1,5 +1,7 @@
 apply plugin: "com.android.application"
 apply plugin: "com.facebook.react"
+// 파이어베이스 첫연동
+apply plugin: "com.google.gms.google-services"
 
 import com.android.build.OutputFile
 
@@ -100,6 +102,7 @@ android {
         targetSdkVersion rootProject.ext.targetSdkVersion
         versionCode 1
         versionName "1.0"
+        // multiDexEnabled true // 이건 왜하지
     }
 
     splits {
@@ -165,6 +168,17 @@ dependencies {
     } else {
         implementation jscFlavor
     }
+
+    // 구글애널리틱스 
+    implementation platform('com.google.firebase:firebase-bom:31.2.3')
+    implementation 'com.google.firebase:firebase-messaging'
+    implementation 'com.google.firebase:firebase-analytics'
+    // 파이어베이스 인증
+    implementation 'com.google.firebase:firebase-auth'
+    // When using the BoM, you don't specify versions in Firebase library dependencies
 }
 
 apply from: file("../../node_modules/@react-native-community/cli-platform-android/native_modules.gradle"); applyNativeModulesAppBuildGradle(project)
+
+//react vector icon
+apply from: "../../node_modules/react-native-vector-icons/fonts.gradle"

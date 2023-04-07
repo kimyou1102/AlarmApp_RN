@@ -1,4 +1,4 @@
-import React, {useState, useEffect} from 'react';
+import React, {useState, useEffect,useCallback} from 'react';
 import {
   StyleSheet,
   View,
@@ -27,6 +27,8 @@ import MissionSetScreen from './MissionSetScreen';
 import DatePicker from 'react-native-date-picker'
 import Swipeable from 'react-native-gesture-handler/Swipeable';
 import { GestureHandlerRootView } from "react-native-gesture-handler";
+import messaging from '@react-native-firebase/messaging';
+import PushNotification, {Importance} from "react-native-push-notification";
 
 const MainScreen = () => {
   const [data, setData] = useState([]);
@@ -45,6 +47,34 @@ const MainScreen = () => {
   const [date, setDate] = useState(new Date())
   console.log(date);
 
+  messaging().setBackgroundMessageHandler(async (remoteMessage) => {
+    console.log('Message handled in the background!', remoteMessage);
+  });
+  const getFcmToken = async () => {
+    const fcmToken = await messaging().getToken();
+    console.log('[FCM Token] ', fcmToken);
+  };
+
+  useEffect(() => {
+    PushNotification.createChannel(
+      {
+        channelId: "sound_channel", // (required)
+        channelName: "sound_channel", // (required)
+        channelDescription: "A channel to categorise your notifications", // (optional) default: undefined.
+        playSound: true, // (optional) default: true
+        soundName: "default", // (optional) See `soundName` parameter of `localNotification` function
+        importance: Importance.HIGH, // (optional) default: Importance.HIGH. Int value of the Android notification importance
+        vibrate: true, // (optional) default: true. Creates the default vibration pattern if true.
+      },
+      (created) => console.log(`createChannel returned '${created}'`) // (optional) callback returns whether the channel was created, false means it already existed.
+    );
+    getFcmToken();
+    const unsubscribe = messaging().onMessage(async remoteMessage => {
+      console.log('[Remote Message] ', JSON.stringify(remoteMessage));
+    });
+    return unsubscribe;
+  }, []);
+
   useEffect(() => {
     date.getHours() > 12 ? setSelectedTimeZone('오후') : setSelectedTimeZone('오전');
   }, [date]);
@@ -56,7 +86,27 @@ const MainScreen = () => {
   }
 
   const plusOnPress = () => {
-    setModalVisible(modalVisible => !modalVisible);
+    PushNotification.cancelAllLocalNotifications();
+    PushNotification.localNotificationSchedule({
+      //... You can use all the options from localNotifications
+      id: "1",
+      channelId: 'sound_channel',
+      title:"알람",
+      message: "알람이 울리고 있어요!!", // (required)
+      date: new Date(Date.now() + 3 * 1000), // in 60 secs
+      largeIcon: "alarm_icon",
+      smallIcon: "alarm_icon", 
+      // priority: 'hight',
+      visibility: 'public',
+      importance: 'hight',
+      allowWhileIdle: true,
+      vibrate: true, // (optional) default: true
+      vibration: 300, // vibration length in milliseconds, ignored if vibrate=false, default: 1000
+      playSound: true,
+      soundName:  'default',
+      number: 50,
+    });
+    // setModalVisible(modalVisible => !modalVisible);
   };
 
   const missionOnPress = () => {
@@ -126,42 +176,6 @@ const MainScreen = () => {
   }
 
   useEffect(() => {
-    // const initialData = [
-    //   {
-    //     count: 3,
-    //     on_off: true,
-    //     repeat: false,
-    //     sentence: '안녕하세요',
-    //     sound: 'alarm_bell',
-    //     hour: 8,
-    //     minute: 30,
-    //     time_zone: '오전',
-    //     volume: 5,
-    //   },
-    //   // {
-    //   //   count: 3,
-    //   //   on_off: true,
-    //   //   repeat: false,
-    //   //   sentence: '안녕하세요',
-    //   //   sound: 'alarm_bell',
-    //   //   time: '9:24',
-    //   //   time_zone: '오전',
-    //   //   volume: 10,
-    //   // },
-    //   // {
-    //   //   count: 3,
-    //   //   on_off: false,
-    //   //   repeat: false,
-    //   //   sentence: '안녕하세요',
-    //   //   sound: 'alarm_bell',
-    //   //   time: '10:26',
-    //   //   time_zone: '오전',
-    //   //   volume: 5,
-    //   // },
-    // ];
-    // // setData(initialData);
-    
-    //스토리지 삭제시 제대로 되기 위해 id값 생성한 시간으로 하기
     const getData = async () => {
       try {
         const storageData = JSON.parse(await AsyncStorage.getItem('textData'));
@@ -177,6 +191,30 @@ const MainScreen = () => {
 
     getData();
     console.log(data);
+
+    messaging().onNotificationOpenedApp(remoteMessage => {
+      console.log(
+        'Notification caused app to open from background state:',
+        remoteMessage.notification,
+      );
+      // navigation.navigate(remoteMessage.data.type);
+    });
+
+    // Check whether an initial notification is available
+    messaging()
+      .getInitialNotification()
+      .then(remoteMessage => {
+        if (remoteMessage) {
+          console.log(
+            'Notification caused app to open from quit state:',
+            remoteMessage.notification,
+          );
+          // setInitialRoute(remoteMessage.data.type); // e.g. "Settings"
+        }
+        // setLoading(false);
+      })
+      .catch(err => console.log(err));
+
   }, []);
 
   const deleteOnPress = async (id) => {
